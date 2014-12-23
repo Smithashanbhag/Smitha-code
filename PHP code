@@ -1,0 +1,98 @@
+<?php
+$host = "";
+//server
+$user ="";
+// your user name
+$pwd ="";
+// your password (ddmmyy unless changed)
+$sql_db="";
+ 
+ $conn = @mysqli_connect($host, 
+ $user,
+ $pwd,
+ $sql_db);
+ 
+ // this php code is to add EOI number to table
+ 
+ $JobRefno = trim($_POST["Jobref"]);
+$jobtitle = trim($_POST["Jobtitle"]);
+$fname = trim($_POST["Fname"]);
+$lname = trim($_POST["Lname"]);
+$streetadd = trim($_POST["street"]);
+$subtwn = trim($_POST["subtown"]);
+$state = trim($_POST["State"]);
+$postcode = trim($_POST["PC"]);
+$emailid = trim($_POST["Email"]);
+$phoneno = trim($_POST["Phone"]);
+$skillsname="";
+foreach($_POST['Skil1'] as $selected) {
+$skillsname = $skillsname."|".$selected;
+$skillsname=ltrim($skillsname);
+echo "<p>".$selected ."</p>";
+}
+$otherskillsname = trim($_POST["otherskills"]);
+
+
+         // Checks if connection is successful 
+ if (!$conn) { 
+        // Displays an error message
+ echo "<p>Database connection failure</p>"; // not in production script 
+ } else  { 
+        // Upon successful connection 
+ 
+ $sql_table="EOI";
+ $fieldDefinition="EOInumber INT NOT NULL AUTO_INCREMENT PRIMARY KEY,Job_Ref_no int(30), First_name varchar(30), Last_name varchar(30),Street_address varchar(50),Suburb_town varchar(25),State varchar(3),Postcode varchar(4),Email_address varchar(60),Phone_number int(10),Skills varchar(30),Other_skills varchar(30)";
+		
+		// check: if table does not exist, create it
+		$sqlString = "show tables like '$sql_table'";  // another alternative is to just use 'create table if not exists ...'
+		$result = @mysqli_query($conn, $sqlString);
+		// checks if any tables of this name
+		if(mysqli_num_rows($result)==0) {
+			echo "<p>Table does not exist - create table $sql_table</p>"; // Might not show in a production script 
+			$sqlString = "create table " . $sql_table . "(" . $fieldDefinition . ")";; 
+			$result2 = @mysqli_query($conn, $sqlString);
+			echo $result2;
+		    // checks if the table was created
+		    if($result2===false) {
+				echo "<p class=\"wrong\">Unable to create Table $sql_table </p>"; //Would not show in a production script 
+			} else {
+			// display an operation successful message
+			echo "<p class=\"ok\">Table $sql_table created OK</p>"; //Would not show in a production script 
+			} // if successful query operation
+
+		} else {
+			// display an operation successful message
+			echo "<p>Table  $sql_table already exists</p>"; //Would not show in a production script 
+		} // if successful query operation
+		
+		// Set up the SQL command to add the data into the table
+		
+		$query = "insert into $sql_table"
+						."(Job_Ref_no, First_name,Last_name,Street_address,Suburb_town,State,Postcode,Email_address,Phone_number,Skills,Other_skills)"
+					. values
+						."('$JobRefno','$fname','$lname','$streetadd','$subtwn','$state','$postcode','$emailid','$phoneno','$skillsname','$otherskillsname')";
+		// execute the query
+		$result = mysqli_query($conn, $query);
+		// checks if the execution was successful
+		if(!$result) {
+			echo "<p class=\"wrong\">Something is wrong with ",	$query, "</p>";  //Would not show in a production script 
+		} else {
+$query = "select EOInumber from `EOI` where `Job_Ref_no`='$JobRefno'";
+$result = mysqli_query($conn, $query);
+if($result)
+{
+		$row = mysqli_fetch_assoc($result);
+		$EOInumber = $row['EOInumber'];
+		echo $EOInumber;							
+		
+}
+		    echo "<p class=\"ok\">Successfully added New member and the EOI number is: $EOInumber</p>";
+		
+		} // if successful query operation
+				
+		// close the database connection
+		mysqli_close($conn);
+	}  // if successful database connection
+?>
+</body>
+</html>
